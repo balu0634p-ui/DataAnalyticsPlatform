@@ -1,0 +1,21 @@
+Order_ID,Date,Customer,Product,Category,Region,Quantity,Sales,Profit
+1001,2026-01-05,Ravi,Laptop,Technology,South,2,100000,18000
+1002,2026-01-08,Arjun,Monitor,Technology,North,3,45000,9000
+1003,2026-01-12,Priya,Keyboard,Technology,West,5,7500,2000
+1004,2026-01-15,Anita,Printer,Office Supplies,South,2,30000,6000
+1005,2026-01-20,Kiran,Chair,Furniture,East,4,20000,4000
+1006,2026-02-03,Rahul,Laptop,Technology,North,1,50000,9000
+1007,2026-02-07,Sneha,Desk,Furniture,South,3,30000,7500
+1008,2026-02-14,Vijay,Mouse,Technology,West,10,10000,3000
+1009,2026-02-18,Divya,Printer,Office Supplies,East,1,15000,2500
+1010,2026-02-25,Manoj,Chair,Furniture,South,6,30000,6000
+1011,2026-03-02,Suresh,Laptop,Technology,West,2,100000,18000
+1012,2026-03-08,Lakshmi,Monitor,Technology,South,4,60000,12000
+1013,2026-03-15,Deepak,Desk,Furniture,North,2,20000,5000
+1014,2026-03-21,Swathi,Keyboard,Technology,East,8,12000,3200
+1015,2026-03-28,Ajay,Printer,Office Supplies,South,3,45000,7500
+1016,2026-04-04,Ramesh,Laptop,Technology,North,3,150000,27000
+1017,2026-04-10,Pooja,Chair,Furniture,West,5,25000,5000
+1018,2026-04-17,Naresh,Mouse,Technology,South,15,15000,4500
+1019,2026-04-23,Meena,Desk,Furniture,East,4,40000,10000
+1020,2026-04-29,Harish,Monitor,Technology,South,5,75000,15000
