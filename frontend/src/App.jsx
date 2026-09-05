@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
@@ -15,22 +18,33 @@ import {
 
 import "./App.css";
 
-const API_URL = "http://127.0.0.1:8000/api/analytics/";
+/* =========================================================
+   API
+========================================================= */
+
+const API_URL =
+  "http://127.0.0.1:8000/api/analytics/";
 
 /* =========================================================
    FORMATTERS
 ========================================================= */
 
 function money(value) {
-  return `₹${Number(value || 0).toLocaleString("en-IN", {
-    maximumFractionDigits: 0,
-  })}`;
+  return `₹${Number(value || 0).toLocaleString(
+    "en-IN",
+    {
+      maximumFractionDigits: 0,
+    }
+  )}`;
 }
 
 function number(value) {
-  return Number(value || 0).toLocaleString("en-IN", {
-    maximumFractionDigits: 0,
-  });
+  return Number(value || 0).toLocaleString(
+    "en-IN",
+    {
+      maximumFractionDigits: 0,
+    }
+  );
 }
 
 function percent(value) {
@@ -41,7 +55,11 @@ function percent(value) {
    SAFE HELPERS
 ========================================================= */
 
-function getValue(obj, keys, fallback = 0) {
+function getValue(
+  obj,
+  keys,
+  fallback = 0
+) {
   for (const key of keys) {
     if (
       obj &&
@@ -56,15 +74,28 @@ function getValue(obj, keys, fallback = 0) {
   return fallback;
 }
 
-function textValue(obj, keys, fallback = "—") {
-  return String(getValue(obj, keys, fallback));
+function textValue(
+  obj,
+  keys,
+  fallback = "—"
+) {
+  return String(
+    getValue(obj, keys, fallback)
+  );
 }
 
-function numberValue(obj, keys, fallback = 0) {
-  const value = getValue(obj, keys, fallback);
-  const parsed = Number(value);
+function numberValue(
+  obj,
+  keys,
+  fallback = 0
+) {
+  const value = Number(
+    getValue(obj, keys, fallback)
+  );
 
-  return Number.isFinite(parsed) ? parsed : fallback;
+  return Number.isFinite(value)
+    ? value
+    : fallback;
 }
 
 /* =========================================================
@@ -72,44 +103,66 @@ function numberValue(obj, keys, fallback = 0) {
 ========================================================= */
 
 function normalizeRegion(item) {
-  const revenue = numberValue(item, [
-    "revenue",
-    "sales",
-    "total_revenue",
-  ]);
+  const revenue = numberValue(
+    item,
+    [
+      "revenue",
+      "sales",
+      "total_revenue",
+    ]
+  );
 
-  const profit = numberValue(item, [
-    "profit",
-    "total_profit",
-  ]);
+  const profit = numberValue(
+    item,
+    [
+      "profit",
+      "total_profit",
+    ]
+  );
 
-  const orders = numberValue(item, [
-    "orders",
-    "total_orders",
-    "order_count",
-  ]);
+  const orders = numberValue(
+    item,
+    [
+      "orders",
+      "total_orders",
+      "order_count",
+    ]
+  );
 
-  const quantity = numberValue(item, [
-    "quantity",
-    "total_quantity",
-  ]);
+  const quantity = numberValue(
+    item,
+    [
+      "quantity",
+      "total_quantity",
+    ]
+  );
 
-  let margin = numberValue(item, [
-    "margin",
-    "profit_margin",
-    "profit_margin_percent",
-  ]);
+  let margin = numberValue(
+    item,
+    [
+      "margin",
+      "profit_margin",
+      "profit_margin_percent",
+    ]
+  );
 
-  if (margin === 0 && revenue > 0) {
-    margin = (profit / revenue) * 100;
+  if (
+    margin === 0 &&
+    revenue > 0
+  ) {
+    margin =
+      (profit / revenue) * 100;
   }
 
   return {
-    region: textValue(item, [
-      "region",
-      "name",
-      "region_name",
-    ]),
+    region: textValue(
+      item,
+      [
+        "region",
+        "name",
+        "region_name",
+      ]
+    ),
     revenue,
     profit,
     orders,
@@ -119,44 +172,66 @@ function normalizeRegion(item) {
 }
 
 function normalizeCategory(item) {
-  const revenue = numberValue(item, [
-    "revenue",
-    "sales",
-    "total_revenue",
-  ]);
+  const revenue = numberValue(
+    item,
+    [
+      "revenue",
+      "sales",
+      "total_revenue",
+    ]
+  );
 
-  const profit = numberValue(item, [
-    "profit",
-    "total_profit",
-  ]);
+  const profit = numberValue(
+    item,
+    [
+      "profit",
+      "total_profit",
+    ]
+  );
 
-  const orders = numberValue(item, [
-    "orders",
-    "total_orders",
-    "order_count",
-  ]);
+  const orders = numberValue(
+    item,
+    [
+      "orders",
+      "total_orders",
+      "order_count",
+    ]
+  );
 
-  const quantity = numberValue(item, [
-    "quantity",
-    "total_quantity",
-  ]);
+  const quantity = numberValue(
+    item,
+    [
+      "quantity",
+      "total_quantity",
+    ]
+  );
 
-  let margin = numberValue(item, [
-    "margin",
-    "profit_margin",
-    "profit_margin_percent",
-  ]);
+  let margin = numberValue(
+    item,
+    [
+      "margin",
+      "profit_margin",
+      "profit_margin_percent",
+    ]
+  );
 
-  if (margin === 0 && revenue > 0) {
-    margin = (profit / revenue) * 100;
+  if (
+    margin === 0 &&
+    revenue > 0
+  ) {
+    margin =
+      (profit / revenue) * 100;
   }
 
   return {
-    category: textValue(item, [
-      "category",
-      "name",
-      "category_name",
-    ]),
+    category: textValue(
+      item,
+      [
+        "category",
+        "name",
+        "category_name",
+      ]
+    ),
     revenue,
     profit,
     orders,
@@ -166,44 +241,66 @@ function normalizeCategory(item) {
 }
 
 function normalizeProduct(item) {
-  const revenue = numberValue(item, [
-    "revenue",
-    "sales",
-    "total_revenue",
-  ]);
+  const revenue = numberValue(
+    item,
+    [
+      "revenue",
+      "sales",
+      "total_revenue",
+    ]
+  );
 
-  const profit = numberValue(item, [
-    "profit",
-    "total_profit",
-  ]);
+  const profit = numberValue(
+    item,
+    [
+      "profit",
+      "total_profit",
+    ]
+  );
 
-  const orders = numberValue(item, [
-    "orders",
-    "total_orders",
-    "order_count",
-  ]);
+  const orders = numberValue(
+    item,
+    [
+      "orders",
+      "total_orders",
+      "order_count",
+    ]
+  );
 
-  const quantity = numberValue(item, [
-    "quantity",
-    "total_quantity",
-  ]);
+  const quantity = numberValue(
+    item,
+    [
+      "quantity",
+      "total_quantity",
+    ]
+  );
 
-  let margin = numberValue(item, [
-    "margin",
-    "profit_margin",
-    "profit_margin_percent",
-  ]);
+  let margin = numberValue(
+    item,
+    [
+      "margin",
+      "profit_margin",
+      "profit_margin_percent",
+    ]
+  );
 
-  if (margin === 0 && revenue > 0) {
-    margin = (profit / revenue) * 100;
+  if (
+    margin === 0 &&
+    revenue > 0
+  ) {
+    margin =
+      (profit / revenue) * 100;
   }
 
   return {
-    product: textValue(item, [
-      "product",
-      "name",
-      "product_name",
-    ]),
+    product: textValue(
+      item,
+      [
+        "product",
+        "name",
+        "product_name",
+      ]
+    ),
     revenue,
     profit,
     orders,
@@ -217,96 +314,170 @@ function normalizeProduct(item) {
 ========================================================= */
 
 function Sidebar() {
+  function goToSection(id) {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }
+
   return (
     <aside className="sidebar">
+
       <div className="brand">
-        <div className="brand-logo">DA</div>
+
+        <div className="brand-logo">
+          DA
+        </div>
 
         <div>
-          <div className="brand-title">
-            Data Analytics
+          <div className="brand-name">
+            Sales Analytics Platform
           </div>
 
           <div className="brand-subtitle">
             Intelligence Platform
           </div>
         </div>
+
       </div>
 
-      <div className="sidebar-section-title">
+      <div className="side-section-title">
         WORKSPACE
       </div>
 
       <nav className="nav">
-        <a
+
+        <button
+          type="button"
           className="nav-item active"
-          href="#dashboard"
+          onClick={() =>
+            goToSection("dashboard")
+          }
         >
-          <span>▣</span>
-          Dashboard
-        </a>
+          <span className="nav-icon">
+            ▣
+          </span>
 
-        <a
-          className="nav-item"
-          href="#sales"
-        >
-          <span>↗</span>
-          Sales Analytics
-        </a>
+          <span>
+            Dashboard
+          </span>
+        </button>
 
-        <a
+        <button
+          type="button"
           className="nav-item"
-          href="#products"
+          onClick={() =>
+            goToSection("sales")
+          }
         >
-          <span>◇</span>
-          Products
-        </a>
+          <span className="nav-icon">
+            ↗
+          </span>
 
-        <a
-          className="nav-item"
-          href="#regions"
-        >
-          <span>◉</span>
-          Regions
-        </a>
+          <span>
+            Sales Analytics
+          </span>
+        </button>
 
-        <a
+        <button
+          type="button"
           className="nav-item"
-          href="#insights"
+          onClick={() =>
+            goToSection("products")
+          }
         >
-          <span>✦</span>
-          Insights
-        </a>
+          <span className="nav-icon">
+            ◇
+          </span>
+
+          <span>
+            Products
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="nav-item"
+          onClick={() =>
+            goToSection("regions")
+          }
+        >
+          <span className="nav-icon">
+            ◉
+          </span>
+
+          <span>
+            Regions
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="nav-item"
+          onClick={() =>
+            goToSection("insights")
+          }
+        >
+          <span className="nav-icon">
+            ✦
+          </span>
+
+          <span>
+            Insights
+          </span>
+        </button>
+
       </nav>
 
-      <div className="sidebar-section-title system-title">
+      <div className="side-section-title system-title">
         SYSTEM
       </div>
 
-      <a
+      <button
+        type="button"
         className="nav-item"
-        href="#settings"
       >
-        <span>⚙</span>
-        Settings
-      </a>
+        <span className="nav-icon">
+          ⚙
+        </span>
+
+        <span>
+          Settings
+        </span>
+      </button>
 
       <div className="sidebar-bottom">
+
         <div className="api-status">
+
           <span className="status-dot"></span>
 
           <div>
-            <strong>API Connected</strong>
-            <small>Django backend online</small>
+            <strong>
+              API Connected
+            </strong>
+
+            <small>
+              Django backend online
+            </small>
           </div>
+
         </div>
 
         <div className="platform-version">
-          DATA ANALYTICS PLATFORM
+          SALES ANALYTICS PLATFORM
           <br />
           v1.0.0
         </div>
+
       </div>
+
     </aside>
   );
 }
@@ -324,8 +495,11 @@ function MetricCard({
 }) {
   return (
     <div className="metric-card">
+
       <div
-        className={`metric-icon ${type || ""}`}
+        className={`metric-icon ${
+          type || ""
+        }`}
       >
         {icon}
       </div>
@@ -341,6 +515,7 @@ function MetricCard({
       <div className="metric-description">
         {description}
       </div>
+
     </div>
   );
 }
@@ -358,14 +533,20 @@ function Filter({
 }) {
   return (
     <div className="field">
-      <label>{label}</label>
+
+      <label>
+        {label}
+      </label>
 
       <select
         value={value}
         onChange={(event) =>
-          onChange(event.target.value)
+          onChange(
+            event.target.value
+          )
         }
       >
+
         <option value="All">
           {defaultText}
         </option>
@@ -378,7 +559,9 @@ function Filter({
             {item}
           </option>
         ))}
+
       </select>
+
     </div>
   );
 }
@@ -387,7 +570,9 @@ function Filter({
    REVENUE CHART
 ========================================================= */
 
-function RevenueChart({ data }) {
+function RevenueChart({
+  data,
+}) {
   if (!data.length) {
     return (
       <div className="empty-chart">
@@ -398,10 +583,12 @@ function RevenueChart({ data }) {
 
   return (
     <div className="chart-wrapper">
+
       <ResponsiveContainer
         width="100%"
         height="100%"
       >
+
         <AreaChart
           data={data}
           margin={{
@@ -411,7 +598,9 @@ function RevenueChart({ data }) {
             bottom: 10,
           }}
         >
+
           <defs>
+
             <linearGradient
               id="revenueGradient"
               x1="0"
@@ -419,6 +608,7 @@ function RevenueChart({ data }) {
               x2="0"
               y2="1"
             >
+
               <stop
                 offset="0%"
                 stopColor="#2864e8"
@@ -430,7 +620,9 @@ function RevenueChart({ data }) {
                 stopColor="#2864e8"
                 stopOpacity={0.02}
               />
+
             </linearGradient>
+
           </defs>
 
           <CartesianGrid
@@ -486,8 +678,11 @@ function RevenueChart({ data }) {
               r: 6,
             }}
           />
+
         </AreaChart>
+
       </ResponsiveContainer>
+
     </div>
   );
 }
@@ -496,23 +691,34 @@ function RevenueChart({ data }) {
    REGION CHART
 ========================================================= */
 
-function RegionChart({ data }) {
+function RegionChart({
+  data,
+}) {
   if (!data.length) {
     return (
-      <div className="empty-chart">
+      <div className="empty-chart small">
         No regional data available
       </div>
     );
   }
 
+  const prepared = data.map(
+    (item) => ({
+      region: item.region,
+      revenue: item.revenue,
+    })
+  );
+
   return (
     <div className="chart-wrapper">
+
       <ResponsiveContainer
         width="100%"
         height="100%"
       >
+
         <BarChart
-          data={data}
+          data={prepared}
           layout="vertical"
           margin={{
             top: 10,
@@ -521,6 +727,7 @@ function RegionChart({ data }) {
             bottom: 10,
           }}
         >
+
           <CartesianGrid
             stroke="#e9edf3"
             strokeDasharray="3 3"
@@ -575,8 +782,11 @@ function RegionChart({ data }) {
             ]}
             barSize={24}
           />
+
         </BarChart>
+
       </ResponsiveContainer>
+
     </div>
   );
 }
@@ -585,7 +795,9 @@ function RegionChart({ data }) {
    REGIONAL TABLE
 ========================================================= */
 
-function RegionalTable({ data }) {
+function RegionalTable({
+  data,
+}) {
   if (!data.length) {
     return (
       <div className="table-empty">
@@ -596,58 +808,92 @@ function RegionalTable({ data }) {
 
   return (
     <div className="table-wrapper">
+
       <table>
+
         <thead>
+
           <tr>
+
             <th>REGION</th>
             <th>REVENUE</th>
             <th>PROFIT</th>
             <th>ORDERS</th>
             <th>QUANTITY</th>
             <th>MARGIN</th>
+
           </tr>
+
         </thead>
 
         <tbody>
+
           {data.map((item) => (
-            <tr key={item.region}>
+
+            <tr
+              key={item.region}
+            >
+
               <td>
+
                 <div className="name-cell">
+
                   <span className="avatar-small">
-                    {item.region.charAt(0)}
+                    {String(
+                      item.region
+                    ).charAt(0)}
                   </span>
 
                   <strong>
                     {item.region}
                   </strong>
+
                 </div>
+
               </td>
 
               <td>
-                {money(item.revenue)}
+                {money(
+                  item.revenue
+                )}
               </td>
 
               <td className="profit-text">
-                {money(item.profit)}
+                {money(
+                  item.profit
+                )}
               </td>
 
               <td>
-                {number(item.orders)}
+                {number(
+                  item.orders
+                )}
               </td>
 
               <td>
-                {number(item.quantity)}
+                {number(
+                  item.quantity
+                )}
               </td>
 
               <td>
+
                 <span className="margin-badge">
-                  {percent(item.margin)}
+                  {percent(
+                    item.margin
+                  )}
                 </span>
+
               </td>
+
             </tr>
+
           ))}
+
         </tbody>
+
       </table>
+
     </div>
   );
 }
@@ -656,7 +902,9 @@ function RegionalTable({ data }) {
    CATEGORY TABLE
 ========================================================= */
 
-function CategoryTable({ data }) {
+function CategoryTable({
+  data,
+}) {
   if (!data.length) {
     return (
       <div className="table-empty">
@@ -667,58 +915,92 @@ function CategoryTable({ data }) {
 
   return (
     <div className="table-wrapper">
+
       <table>
+
         <thead>
+
           <tr>
+
             <th>CATEGORY</th>
             <th>REVENUE</th>
             <th>PROFIT</th>
             <th>ORDERS</th>
             <th>QUANTITY</th>
             <th>MARGIN</th>
+
           </tr>
+
         </thead>
 
         <tbody>
+
           {data.map((item) => (
-            <tr key={item.category}>
+
+            <tr
+              key={item.category}
+            >
+
               <td>
+
                 <div className="name-cell">
+
                   <span className="avatar-small">
-                    {item.category.charAt(0)}
+                    {String(
+                      item.category
+                    ).charAt(0)}
                   </span>
 
                   <strong>
                     {item.category}
                   </strong>
+
                 </div>
+
               </td>
 
               <td>
-                {money(item.revenue)}
+                {money(
+                  item.revenue
+                )}
               </td>
 
               <td className="profit-text">
-                {money(item.profit)}
+                {money(
+                  item.profit
+                )}
               </td>
 
               <td>
-                {number(item.orders)}
+                {number(
+                  item.orders
+                )}
               </td>
 
               <td>
-                {number(item.quantity)}
+                {number(
+                  item.quantity
+                )}
               </td>
 
               <td>
+
                 <span className="margin-badge">
-                  {percent(item.margin)}
+                  {percent(
+                    item.margin
+                  )}
                 </span>
+
               </td>
+
             </tr>
+
           ))}
+
         </tbody>
+
       </table>
+
     </div>
   );
 }
@@ -727,7 +1009,9 @@ function CategoryTable({ data }) {
    TOP PRODUCTS
 ========================================================= */
 
-function TopProducts({ data }) {
+function TopProducts({
+  data,
+}) {
   if (!data.length) {
     return (
       <div className="table-empty">
@@ -736,53 +1020,75 @@ function TopProducts({ data }) {
     );
   }
 
-  const maxRevenue = Math.max(
-    ...data.map((item) => item.revenue),
-    1
-  );
+  const maxRevenue =
+    Math.max(
+      ...data.map(
+        (item) => item.revenue
+      ),
+      1
+    );
 
   return (
     <div className="products-list">
-      {data.slice(0, 5).map(
-        (item, index) => (
-          <div
-            className="product-row"
-            key={item.product}
-          >
-            <div className="product-top">
-              <div className="product-name">
-                <span className="product-rank">
-                  {String(index + 1).padStart(
-                    2,
-                    "0"
+
+      {data
+        .slice(0, 5)
+        .map(
+          (item, index) => (
+
+            <div
+              className="product-row"
+              key={item.product}
+            >
+
+              <div className="product-top">
+
+                <div className="product-name">
+
+                  <span className="product-rank">
+                    {String(
+                      index + 1
+                    ).padStart(
+                      2,
+                      "0"
+                    )}
+                  </span>
+
+                  <strong>
+                    {item.product}
+                  </strong>
+
+                </div>
+
+                <span className="product-value">
+                  {money(
+                    item.revenue
                   )}
                 </span>
 
-                <strong>
-                  {item.product}
-                </strong>
               </div>
 
-              <span className="product-value">
-                {money(item.revenue)}
-              </span>
+              <div className="product-bar">
+
+                <div
+                  className="product-bar-fill"
+                  style={{
+                    width: `${
+                      (
+                        item.revenue /
+                        maxRevenue
+                      ) * 100
+                    }%`,
+                  }}
+                />
+
+              </div>
+
             </div>
 
-            <div className="product-bar">
-              <div
-                className="product-bar-fill"
-                style={{
-                  width: `${
-                    (item.revenue /
-                      maxRevenue) *
-                    100
-                  }%`,
-                }}
-              ></div>
-            </div>
-          </div>
-        )
-      )}
+          )
+        )}
+
     </div>
   );
 }
@@ -792,6 +1098,7 @@ function TopProducts({ data }) {
 ========================================================= */
 
 export default function App() {
+
   const [data, setData] =
     useState(null);
 
@@ -804,14 +1111,16 @@ export default function App() {
       end_date: "",
     });
 
-  const [appliedFilters, setAppliedFilters] =
-    useState({
-      region: "All",
-      category: "All",
-      product: "All",
-      start_date: "",
-      end_date: "",
-    });
+  const [
+    appliedFilters,
+    setAppliedFilters,
+  ] = useState({
+    region: "All",
+    category: "All",
+    product: "All",
+    start_date: "",
+    end_date: "",
+  });
 
   const [loading, setLoading] =
     useState(true);
@@ -826,7 +1135,9 @@ export default function App() {
   async function loadAnalytics(
     currentFilters = appliedFilters
   ) {
+
     try {
+
       setLoading(true);
       setError("");
 
@@ -846,46 +1157,63 @@ export default function App() {
 
       if (
         currentFilters.region &&
-        currentFilters.region !== "All"
+        currentFilters.region !==
+          "All"
       ) {
+
         params.append(
           "region",
           currentFilters.region
         );
+
       }
 
       if (
         currentFilters.category &&
-        currentFilters.category !== "All"
+        currentFilters.category !==
+          "All"
       ) {
+
         params.append(
           "category",
           currentFilters.category
         );
+
       }
 
       if (
         currentFilters.product &&
-        currentFilters.product !== "All"
+        currentFilters.product !==
+          "All"
       ) {
+
         params.append(
           "product",
           currentFilters.product
         );
+
       }
 
-      if (currentFilters.start_date) {
+      if (
+        currentFilters.start_date
+      ) {
+
         params.append(
           "start_date",
           currentFilters.start_date
         );
+
       }
 
-      if (currentFilters.end_date) {
+      if (
+        currentFilters.end_date
+      ) {
+
         params.append(
           "end_date",
           currentFilters.end_date
         );
+
       }
 
       const query =
@@ -904,9 +1232,11 @@ export default function App() {
         await fetch(url);
 
       if (!response.ok) {
+
         throw new Error(
           `API Error: ${response.status}`
         );
+
       }
 
       const result =
@@ -918,24 +1248,32 @@ export default function App() {
       );
 
       if (
-        result.status === "error"
+        result.status ===
+        "error"
       ) {
+
         throw new Error(
           result.message ||
             "Analytics request failed."
         );
+
       }
 
       setData(result);
+
     } catch (err) {
+
       console.error(err);
 
       setError(
         err.message ||
           "Unable to connect to Django backend."
       );
+
     } finally {
+
       setLoading(false);
+
     }
   }
 
@@ -951,16 +1289,21 @@ export default function App() {
      FILTER CHANGE
   ======================================================= */
 
-  function handleFilterChange(event) {
+  function handleFilterChange(
+    event
+  ) {
+
     const {
       name,
       value,
     } = event.target;
 
-    setFilters((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setFilters(
+      (previous) => ({
+        ...previous,
+        [name]: value,
+      })
+    );
   }
 
   /* =======================================================
@@ -968,6 +1311,7 @@ export default function App() {
   ======================================================= */
 
   function applyFilters(event) {
+
     event.preventDefault();
 
     if (
@@ -976,6 +1320,7 @@ export default function App() {
       filters.start_date >
         filters.end_date
     ) {
+
       setError(
         "From Date cannot be later than To Date."
       );
@@ -1001,6 +1346,7 @@ export default function App() {
   ======================================================= */
 
   function resetFilters() {
+
     const reset = {
       region: "All",
       category: "All",
@@ -1020,62 +1366,66 @@ export default function App() {
      NORMALIZED DATA
   ======================================================= */
 
-  const regions = useMemo(
-    () =>
-      (
-        data?.region_performance ||
-        []
-      ).map(normalizeRegion),
-    [data]
-  );
+  const regions =
+    useMemo(
+      () =>
+        (
+          data?.region_performance ||
+          []
+        ).map(normalizeRegion),
+      [data]
+    );
 
-  const categories = useMemo(
-    () =>
-      (
-        data?.category_performance ||
-        []
-      ).map(normalizeCategory),
-    [data]
-  );
+  const categories =
+    useMemo(
+      () =>
+        (
+          data?.category_performance ||
+          []
+        ).map(normalizeCategory),
+      [data]
+    );
 
-  const products = useMemo(
-    () =>
-      (
-        data?.product_performance ||
-        []
-      ).map(normalizeProduct),
-    [data]
-  );
+  const products =
+    useMemo(
+      () =>
+        (
+          data?.product_performance ||
+          []
+        ).map(normalizeProduct),
+      [data]
+    );
 
-  const monthlySales = useMemo(
-    () =>
-      (
-        data?.monthly_sales ||
-        []
-      ).map((item) => ({
-        month: textValue(
-          item,
-          [
-            "month",
-            "period",
-            "date",
-            "name",
-          ],
-          "—"
-        ),
+  const monthlySales =
+    useMemo(
+      () =>
+        (
+          data?.monthly_sales ||
+          []
+        ).map((item) => ({
+          month: textValue(
+            item,
+            [
+              "month",
+              "period",
+              "date",
+              "name",
+            ],
+            "—"
+          ),
 
-        revenue: numberValue(
-          item,
-          [
-            "sales",
-            "revenue",
-            "total_revenue",
-            "value",
-          ]
-        ),
-      })),
-    [data]
-  );
+          revenue: numberValue(
+            item,
+            [
+              "sales",
+              "revenue",
+              "total_revenue",
+              "value",
+            ]
+          ),
+        })),
+      [data]
+    );
 
   const topProducts =
     useMemo(
@@ -1083,7 +1433,8 @@ export default function App() {
         [...products]
           .sort(
             (a, b) =>
-              b.revenue - a.revenue
+              b.revenue -
+              a.revenue
           )
           .slice(0, 5),
       [products]
@@ -1093,13 +1444,16 @@ export default function App() {
     data?.kpis || {};
 
   const activeFilterCount =
-    (appliedFilters.region !== "All"
+    (appliedFilters.region !==
+    "All"
       ? 1
       : 0) +
-    (appliedFilters.category !== "All"
+    (appliedFilters.category !==
+    "All"
       ? 1
       : 0) +
-    (appliedFilters.product !== "All"
+    (appliedFilters.product !==
+    "All"
       ? 1
       : 0) +
     (appliedFilters.start_date
@@ -1140,14 +1494,18 @@ export default function App() {
 
   const bestMonth =
     useMemo(() => {
+
       if (!monthlySales.length) {
         return null;
       }
 
-      return [...monthlySales].sort(
-        (a, b) =>
-          b.revenue - a.revenue
-      )[0];
+      return [...monthlySales]
+        .sort(
+          (a, b) =>
+            b.revenue -
+            a.revenue
+        )[0];
+
     }, [monthlySales]);
 
   /* =======================================================
@@ -1155,67 +1513,94 @@ export default function App() {
   ======================================================= */
 
   function exportReport() {
-    if (!data) return;
+
+    if (!data) {
+      return;
+    }
 
     const rows = [
-      ["DATA ANALYTICS PLATFORM"],
-      ["Sales Performance Report"],
+
+      [
+        "SALES ANALYTICS PLATFORM",
+      ],
+
+      [
+        "Sales Performance Report",
+      ],
+
       [],
+
       ["FILTERS"],
+
       [
         "Region",
         appliedFilters.region,
       ],
+
       [
         "Category",
         appliedFilters.category,
       ],
+
       [
         "Product",
         appliedFilters.product,
       ],
+
       [
         "From Date",
         appliedFilters.start_date ||
           "All",
       ],
+
       [
         "To Date",
         appliedFilters.end_date ||
           "All",
       ],
+
       [],
+
       [
         "KEY PERFORMANCE INDICATORS",
       ],
+
       [
         "Total Revenue",
         kpis.total_revenue,
       ],
+
       [
         "Total Profit",
         kpis.total_profit,
       ],
+
       [
         "Total Orders",
         kpis.total_orders,
       ],
+
       [
         "Total Quantity",
         kpis.total_quantity,
       ],
+
       [
         "Average Order Value",
         kpis.average_order_value,
       ],
+
       [
         "Profit Margin",
         kpis.profit_margin,
       ],
+
       [],
+
       [
         "REGIONAL PERFORMANCE",
       ],
+
       [
         "Region",
         "Revenue",
@@ -1226,18 +1611,23 @@ export default function App() {
       ],
     ];
 
-    regions.forEach((item) => {
-      rows.push([
-        item.region,
-        item.revenue,
-        item.profit,
-        item.orders,
-        item.quantity,
-        item.margin,
-      ]);
-    });
+    regions.forEach(
+      (item) => {
+
+        rows.push([
+          item.region,
+          item.revenue,
+          item.profit,
+          item.orders,
+          item.quantity,
+          item.margin,
+        ]);
+
+      }
+    );
 
     rows.push([]);
+
     rows.push([
       "CATEGORY PERFORMANCE",
     ]);
@@ -1251,18 +1641,23 @@ export default function App() {
       "Margin",
     ]);
 
-    categories.forEach((item) => {
-      rows.push([
-        item.category,
-        item.revenue,
-        item.profit,
-        item.orders,
-        item.quantity,
-        item.margin,
-      ]);
-    });
+    categories.forEach(
+      (item) => {
+
+        rows.push([
+          item.category,
+          item.revenue,
+          item.profit,
+          item.orders,
+          item.quantity,
+          item.margin,
+        ]);
+
+      }
+    );
 
     rows.push([]);
+
     rows.push([
       "PRODUCT PERFORMANCE",
     ]);
@@ -1276,46 +1671,57 @@ export default function App() {
       "Margin",
     ]);
 
-    products.forEach((item) => {
-      rows.push([
-        item.product,
-        item.revenue,
-        item.profit,
-        item.orders,
-        item.quantity,
-        item.margin,
-      ]);
-    });
+    products.forEach(
+      (item) => {
 
-    const csv = rows
-      .map((row) =>
-        row
-          .map(
-            (cell) =>
-              `"${String(
-                cell ?? ""
-              ).replace(
-                /"/g,
-                '""'
-              )}"`
-          )
-          .join(",")
-      )
-      .join("\n");
+        rows.push([
+          item.product,
+          item.revenue,
+          item.profit,
+          item.orders,
+          item.quantity,
+          item.margin,
+        ]);
 
-    const blob = new Blob(
-      [csv],
-      {
-        type:
-          "text/csv;charset=utf-8;",
       }
     );
 
+    const csv =
+      rows
+        .map(
+          (row) =>
+            row
+              .map(
+                (cell) =>
+                  `"${String(
+                    cell ?? ""
+                  ).replace(
+                    /"/g,
+                    '""'
+                  )}"`
+              )
+              .join(",")
+        )
+        .join("\n");
+
+    const blob =
+      new Blob(
+        [csv],
+        {
+          type:
+            "text/csv;charset=utf-8;",
+        }
+      );
+
     const url =
-      URL.createObjectURL(blob);
+      URL.createObjectURL(
+        blob
+      );
 
     const link =
-      document.createElement("a");
+      document.createElement(
+        "a"
+      );
 
     link.href = url;
 
@@ -1336,7 +1742,9 @@ export default function App() {
       link
     );
 
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(
+      url
+    );
   }
 
   /* =======================================================
@@ -1344,39 +1752,64 @@ export default function App() {
   ======================================================= */
 
   return (
+
     <div className="app">
+
       <Sidebar />
 
       <main className="main">
+
         <div className="page">
 
-          {/* TOP BAR */}
+          {/* =================================================
+              TOP BAR
+          ================================================= */}
 
           <header className="topbar">
+
             <div className="breadcrumbs">
+
               Workspace
+
               <span>/</span>
+
               Analytics
+
               <span>/</span>
+
               Dashboard
+
             </div>
 
             <div className="top-actions">
+
               <div className="live-pill">
+
                 <span></span>
+
                 Live
+
               </div>
 
               <div className="user-avatar">
                 DA
               </div>
+
             </div>
+
           </header>
 
-          {/* PAGE HEADER */}
+          {/* =================================================
+              PAGE HEADER
+          ================================================= */}
 
-          <section className="page-heading">
+          <section
+            className="page-heading"
+            id="dashboard"
+          >
+
             <div>
+
               <div className="eyebrow">
                 BUSINESS INTELLIGENCE
               </div>
@@ -1386,33 +1819,46 @@ export default function App() {
               </h1>
 
               <p>
-                A real-time overview of
-                revenue, profitability and
+                A real-time overview
+                of revenue,
+                profitability and
                 business performance.
               </p>
+
             </div>
 
             <div className="report-period">
+
               <small>
                 REPORT PERIOD
               </small>
 
               <strong>
+
                 {appliedFilters.start_date ||
-                  "All"}{" "}
-                →
-                {" "}
+                  "All"}
+
+                {" → "}
+
                 {appliedFilters.end_date ||
                   "All"}
+
               </strong>
+
             </div>
+
           </section>
 
-          {/* FILTERS */}
+          {/* =================================================
+              FILTERS
+          ================================================= */}
 
           <section className="card filter-card">
+
             <div className="filter-heading">
+
               <div>
+
                 <h2>
                   Analysis Filters
                 </h2>
@@ -1422,73 +1868,124 @@ export default function App() {
                   using business
                   dimensions.
                 </p>
+
               </div>
 
-              <span className="active-count">
+              <span>
                 {activeFilterCount} active
               </span>
+
             </div>
 
-            <form
-              className="filters-grid"
-              onSubmit={applyFilters}
-            >
-              <Filter
-                label="REGION"
-                value={filters.region}
-                options={
-                  availableRegions
-                }
-                defaultText="All Regions"
-                onChange={(value) =>
-                  setFilters(
-                    (previous) => ({
-                      ...previous,
-                      region: value,
-                    })
-                  )
-                }
-              />
-
-              <Filter
-                label="CATEGORY"
-                value={
-                  filters.category
-                }
-                options={
-                  availableCategories
-                }
-                defaultText="All Categories"
-                onChange={(value) =>
-                  setFilters(
-                    (previous) => ({
-                      ...previous,
-                      category: value,
-                    })
-                  )
-                }
-              />
-
-              <Filter
-                label="PRODUCT"
-                value={
-                  filters.product
-                }
-                options={
-                  availableProducts
-                }
-                defaultText="All Products"
-                onChange={(value) =>
-                  setFilters(
-                    (previous) => ({
-                      ...previous,
-                      product: value,
-                    })
-                  )
-                }
-              />
+            <div className="filter-grid">
 
               <div className="field">
+
+                <label>
+                  REGION
+                </label>
+
+                <select
+                  name="region"
+                  value={
+                    filters.region
+                  }
+                  onChange={
+                    handleFilterChange
+                  }
+                >
+
+                  <option value="All">
+                    All Regions
+                  </option>
+
+                  {availableRegions.map(
+                    (item) => (
+                      <option
+                        key={item}
+                        value={item}
+                      >
+                        {item}
+                      </option>
+                    )
+                  )}
+
+                </select>
+
+              </div>
+
+              <div className="field">
+
+                <label>
+                  CATEGORY
+                </label>
+
+                <select
+                  name="category"
+                  value={
+                    filters.category
+                  }
+                  onChange={
+                    handleFilterChange
+                  }
+                >
+
+                  <option value="All">
+                    All Categories
+                  </option>
+
+                  {availableCategories.map(
+                    (item) => (
+                      <option
+                        key={item}
+                        value={item}
+                      >
+                        {item}
+                      </option>
+                    )
+                  )}
+
+                </select>
+
+              </div>
+
+              <div className="field">
+
+                <label>
+                  PRODUCT
+                </label>
+
+                <select
+                  name="product"
+                  value={
+                    filters.product
+                  }
+                  onChange={
+                    handleFilterChange
+                  }
+                >
+
+                  <option value="All">
+                    All Products
+                  </option>
+
+                  {availableProducts.map(
+                    (item) => (
+                      <option
+                        key={item}
+                        value={item}
+                      >
+                        {item}
+                      </option>
+                    )
+                  )}
+
+                </select>
+
+              </div>
+
+              <div className="field">
+
                 <label>
                   FROM DATE
                 </label>
@@ -1503,9 +2000,11 @@ export default function App() {
                     handleFilterChange
                   }
                 />
+
               </div>
 
               <div className="field">
+
                 <label>
                   TO DATE
                 </label>
@@ -1520,11 +2019,12 @@ export default function App() {
                     handleFilterChange
                   }
                 />
+
               </div>
 
               <div className="filter-buttons">
+
                 <button
-                  type="button"
                   className="reset-button"
                   onClick={
                     resetFilters
@@ -1534,73 +2034,91 @@ export default function App() {
                 </button>
 
                 <button
-                  type="button"
-                  className="export-button"
+                  className="apply-button"
                   onClick={
-                    exportReport
+                    applyFilters
                   }
                 >
-                  ↓ Export Report
+                  Apply Filters
                 </button>
+
               </div>
-            </form>
 
-            <div className="active-filters">
-              <span className="active-label">
-                ACTIVE:
-              </span>
-
-              <span className="filter-chip">
-                Region:{" "}
-                {appliedFilters.region}
-              </span>
-
-              <span className="filter-chip">
-                Category:{" "}
-                {appliedFilters.category}
-              </span>
-
-              <span className="filter-chip">
-                Product:{" "}
-                {appliedFilters.product}
-              </span>
-
-              <span className="filter-chip">
-                From:{" "}
-                {appliedFilters.start_date ||
-                  "All"}
-              </span>
-
-              <span className="filter-chip">
-                To:{" "}
-                {appliedFilters.end_date ||
-                  "All"}
-              </span>
             </div>
 
-            {error && (
-              <div className="error-box">
-                {error}
-              </div>
-            )}
+            <div className="active-filter-line">
+
+              <strong>
+                ACTIVE:
+              </strong>
+
+              {" "}
+
+              Region:{" "}
+              {appliedFilters.region}
+
+              {" • "}
+
+              Category:{" "}
+              {appliedFilters.category}
+
+              {" • "}
+
+              Product:{" "}
+              {appliedFilters.product}
+
+            </div>
+
           </section>
 
-          {/* LOADING */}
+          {/* =================================================
+              ERROR
+          ================================================= */}
+
+          {error && (
+
+            <div className="error-box">
+
+              <strong>
+                API Error:
+              </strong>
+
+              {" "}
+
+              {error}
+
+            </div>
+
+          )}
+
+          {/* =================================================
+              LOADING
+          ================================================= */}
 
           {loading && (
+
             <div className="loading-box">
               Loading analytics...
             </div>
+
           )}
 
-          {/* DASHBOARD */}
+          {/* =================================================
+              DASHBOARD CONTENT
+          ================================================= */}
 
-          {!loading &&
-            data && (
-              <>
-                {/* KPI HEADER */}
+          {!loading && data && (
 
-                <section className="section-heading">
+            <>
+
+              {/* =================================================
+                  EXECUTIVE OVERVIEW
+              ================================================= */}
+
+              <section>
+
+                <div className="section-heading centered">
+
                   <h2>
                     Executive Overview
                   </h2>
@@ -1609,341 +2127,467 @@ export default function App() {
                     Key performance
                     indicators
                   </p>
-                </section>
 
-                {/* KPI CARDS */}
+                </div>
 
-                <section className="metrics-grid">
+                <div className="metrics-grid">
+
                   <MetricCard
                     icon="₹"
-                    type="blue"
                     label="TOTAL REVENUE"
                     value={money(
                       kpis.total_revenue
                     )}
                     description="Gross sales generated"
+                    type="blue"
                   />
 
                   <MetricCard
                     icon="↗"
-                    type="green"
                     label="TOTAL PROFIT"
                     value={money(
                       kpis.total_profit
                     )}
                     description="Net business profit"
+                    type="green"
                   />
 
                   <MetricCard
                     icon="#"
-                    type="purple"
                     label="TOTAL ORDERS"
                     value={number(
                       kpis.total_orders
                     )}
                     description="Completed transactions"
+                    type="purple"
                   />
 
                   <MetricCard
-                    icon="▥"
-                    type="orange"
+                    icon="▦"
                     label="UNITS SOLD"
                     value={number(
                       kpis.total_quantity
                     )}
                     description="Products sold"
+                    type="orange"
                   />
 
                   <MetricCard
                     icon="↔"
-                    type="pink"
-                    label="AVERAGE ORDER VALUE"
+                    label="AVERAGE ORDER"
                     value={money(
                       kpis.average_order_value
                     )}
                     description="Revenue per order"
+                    type="pink"
                   />
 
                   <MetricCard
                     icon="%"
-                    type="teal"
                     label="PROFIT MARGIN"
                     value={percent(
                       kpis.profit_margin
                     )}
                     description="Overall profitability"
+                    type="teal"
                   />
-                </section>
 
-                {/* CHARTS */}
+                </div>
 
-                <section className="charts-grid">
-                  <div className="card">
-                    <div className="card-header">
-                      <div>
-                        <h3>
-                          Revenue Trend
-                        </h3>
+              </section>
 
-                        <p>
-                          Monthly revenue
-                          performance
-                        </p>
-                      </div>
+              {/* =================================================
+                  SALES ANALYTICS
+              ================================================= */}
 
-                      <div className="chart-total">
-                        <strong>
-                          {money(
-                            kpis.total_revenue
-                          )}
-                        </strong>
+              <section
+                className="chart-grid"
+                id="sales"
+              >
 
-                        <span>
-                          total revenue
-                        </span>
-                      </div>
-                    </div>
+                <div className="card chart-card large-chart">
 
-                    <RevenueChart
-                      data={
-                        monthlySales
-                      }
-                    />
-                  </div>
+                  <div className="card-heading">
 
-                  <div className="card">
-                    <div className="card-header">
-                      <div>
-                        <h3>
-                          Revenue by Region
-                        </h3>
-
-                        <p>
-                          Regional sales
-                          contribution
-                        </p>
-                      </div>
-
-                      <span className="card-tag">
-                        REGION
-                      </span>
-                    </div>
-
-                    <RegionChart
-                      data={regions}
-                    />
-                  </div>
-                </section>
-
-                {/* REGIONAL + PRODUCTS */}
-
-                <section className="two-column-grid">
-                  <div className="card">
-                    <div className="card-header">
-                      <div>
-                        <h3>
-                          Regional Performance
-                        </h3>
-
-                        <p>
-                          Revenue, profit
-                          and operational
-                          metrics
-                        </p>
-                      </div>
-
-                      <span className="card-tag">
-                        {regions.length} regions
-                      </span>
-                    </div>
-
-                    <RegionalTable
-                      data={regions}
-                    />
-                  </div>
-
-                  <div className="card">
-                    <div className="card-header">
-                      <div>
-                        <h3>
-                          Top Products
-                        </h3>
-
-                        <p>
-                          Highest revenue
-                          contributors
-                        </p>
-                      </div>
-                    </div>
-
-                    <TopProducts
-                      data={topProducts}
-                    />
-                  </div>
-                </section>
-
-                {/* CATEGORY */}
-
-                <section className="card category-card">
-                  <div className="card-header">
                     <div>
-                      <h3>
-                        Category Performance
-                      </h3>
+
+                      <h2>
+                        Revenue Trend
+                      </h2>
 
                       <p>
-                        Business performance
-                        across categories
+                        Monthly revenue
+                        performance
                       </p>
+
                     </div>
 
-                    <span className="card-tag">
-                      {categories.length}{" "}
-                      categories
-                    </span>
-                  </div>
+                    <div className="chart-total">
 
-                  <CategoryTable
-                    data={categories}
-                  />
-                </section>
-
-                {/* INSIGHTS */}
-
-                <section className="bottom-grid">
-                  <div className="card insights-card">
-                    <div className="card-header">
-                      <div>
-                        <h3>
-                          Business Insights
-                        </h3>
-
-                        <p>
-                          Key observations
-                          from current
-                          analysis
-                        </p>
-                      </div>
-
-                      <span className="insight-plus">
-                        +
-                      </span>
-                    </div>
-
-                    <div className="insight-content">
-                      {data.business_insights &&
-                      data.business_insights
-                        .length > 0 ? (
-                        data.business_insights.map(
-                          (text, index) => (
-                            <div
-                              className="insight-item"
-                              key={index}
-                            >
-                              <span>✦</span>
-
-                              <p>
-                                {text}
-                              </p>
-                            </div>
-                          )
-                        )
-                      ) : regions.length >
-                        0 ? (
-                        <div className="insight-item">
-                          <span>✦</span>
-
-                          <p>
-                            <strong>
-                              {
-                                [...regions].sort(
-                                  (a, b) =>
-                                    b.revenue -
-                                    a.revenue
-                                )[0].region
-                              }
-                            </strong>{" "}
-                            is the
-                            highest-performing
-                            region.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="empty-insight">
-                          No insights available.
-                        </div>
+                      {money(
+                        kpis.total_revenue
                       )}
+
+                      <small>
+                        total revenue
+                      </small>
+
                     </div>
+
                   </div>
 
-                  <div className="card best-card">
-                    <div className="card-header">
-                      <div>
-                        <h3>
-                          Best Performing Month
-                        </h3>
+                  <RevenueChart
+                    data={monthlySales}
+                  />
 
-                        <p>
-                          Highest revenue
-                          month
-                        </p>
-                      </div>
+                </div>
+
+                <div className="card chart-card">
+
+                  <div className="card-heading">
+
+                    <div>
+
+                      <h2>
+                        Revenue by Region
+                      </h2>
+
+                      <p>
+                        Regional sales
+                        contribution
+                      </p>
+
                     </div>
 
-                    {bestMonth ? (
-                      <div className="best">
-                        <div className="best-icon">
-                          ★
-                        </div>
+                    <span className="chart-tag">
+                      REGION
+                    </span>
 
-                        <span>
-                          BEST MONTH
+                  </div>
+
+                  <RegionChart
+                    data={regions}
+                  />
+
+                </div>
+
+              </section>
+
+              {/* =================================================
+                  REGIONS + PRODUCTS
+              ================================================= */}
+
+              <section className="content-grid">
+
+                <div
+                  className="card"
+                  id="regions"
+                >
+
+                  <div className="card-heading">
+
+                    <div>
+
+                      <h2>
+                        Regional Performance
+                      </h2>
+
+                      <p>
+                        Revenue, profit and
+                        operational metrics
+                      </p>
+
+                    </div>
+
+                    <span className="count-badge">
+                      {regions.length}
+                      {" "}
+                      regions
+                    </span>
+
+                  </div>
+
+                  <RegionalTable
+                    data={regions}
+                  />
+
+                </div>
+
+                <div
+                  className="card"
+                  id="products"
+                >
+
+                  <div className="card-heading">
+
+                    <div>
+
+                      <h2>
+                        Top Products
+                      </h2>
+
+                      <p>
+                        Highest revenue
+                        contributors
+                      </p>
+
+                    </div>
+
+                    <span className="count-badge">
+                      {products.length}
+                      {" "}
+                      products
+                    </span>
+
+                  </div>
+
+                  <TopProducts
+                    data={topProducts}
+                  />
+
+                </div>
+
+              </section>
+
+              {/* =================================================
+                  CATEGORY
+              ================================================= */}
+
+              <section className="card">
+
+                <div className="card-heading">
+
+                  <div>
+
+                    <h2>
+                      Category Performance
+                    </h2>
+
+                    <p>
+                      Business performance
+                      across categories
+                    </p>
+
+                  </div>
+
+                  <span className="count-badge">
+                    {categories.length}
+                    {" "}
+                    categories
+                  </span>
+
+                </div>
+
+                <CategoryTable
+                  data={categories}
+                />
+
+              </section>
+
+              {/* =================================================
+                  INSIGHTS
+              ================================================= */}
+
+              <section
+                className="bottom-grid"
+                id="insights"
+              >
+
+                <div className="card insights-card">
+
+                  <div className="card-heading">
+
+                    <div>
+
+                      <h2>
+                        Business Insights
+                      </h2>
+
+                      <p>
+                        Key observations
+                        from current
+                        analysis
+                      </p>
+
+                    </div>
+
+                    <button
+                      className="plus-button"
+                      type="button"
+                    >
+                      +
+                    </button>
+
+                  </div>
+
+                  <div className="insights-list">
+
+                    {Array.isArray(
+                      data.business_insights
+                    ) &&
+                    data.business_insights
+                      .length > 0 ? (
+
+                      data.business_insights.map(
+                        (
+                          insight,
+                          index
+                        ) => (
+
+                          <div
+                            className="insight"
+                            key={index}
+                          >
+
+                            <span className="check">
+                              ✓
+                            </span>
+
+                            <span>
+                              {insight}
+                            </span>
+
+                          </div>
+
+                        )
+                      )
+
+                    ) : regions.length >
+                      0 ? (
+
+                      <div className="insight">
+
+                        <span className="check">
+                          ✓
                         </span>
 
-                        <h2>
-                          {bestMonth.month}
-                        </h2>
+                        <span>
 
-                        <strong>
-                          {money(
-                            bestMonth.revenue
-                          )}
-                        </strong>
+                          {
+                            [...regions]
+                              .sort(
+                                (
+                                  a,
+                                  b
+                                ) =>
+                                  b.revenue -
+                                  a.revenue
+                              )[0]
+                              .region
+                          }
 
-                        <small>
-                          Revenue generated
-                        </small>
+                          {" "}
+                          is the
+                          highest-performing
+                          region.
+
+                        </span>
+
                       </div>
+
                     ) : (
+
                       <div className="empty-insight">
-                        No monthly data
-                        available.
+                        No insights available.
                       </div>
+
                     )}
+
                   </div>
-                </section>
 
-                {/* FOOTER */}
+                </div>
 
-                <footer className="footer">
-                  <span>
-                    Data Analytics Platform
-                  </span>
+                <div className="card best-month-card">
 
-                  <span>
-                    React&nbsp; • &nbsp;
-                    Django&nbsp; • &nbsp;
-                    Pandas
-                  </span>
+                  <div className="card-heading">
 
-                  <span>
-                    v1.0.0
-                  </span>
-                </footer>
-              </>
-            )}
+                    <div>
+
+                      <h2>
+                        Best Performing
+                        Month
+                      </h2>
+
+                      <p>
+                        Highest revenue
+                        month
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  {bestMonth ? (
+
+                    <div className="best-month-content">
+
+                      <div className="star">
+                        ★
+                      </div>
+
+                      <div className="best-label">
+                        BEST MONTH
+                      </div>
+
+                      <div className="best-month-name">
+                        {bestMonth.month}
+                      </div>
+
+                      <div className="best-revenue">
+                        {money(
+                          bestMonth.revenue
+                        )}
+                      </div>
+
+                      <div className="best-caption">
+                        Revenue generated
+                      </div>
+
+                    </div>
+
+                  ) : (
+
+                    <div className="table-empty">
+                      No monthly data
+                      available
+                    </div>
+
+                  )}
+
+                </div>
+
+              </section>
+
+            </>
+
+          )}
+
+          {/* =================================================
+              FOOTER
+          ================================================= */}
+
+          <footer className="footer">
+
+            <span>
+              Sales Analytics Platform
+            </span>
+
+            <span>
+              React&nbsp; • &nbsp;
+              Django&nbsp; • &nbsp;
+              Pandas
+            </span>
+
+            <span>
+              v1.0.0
+            </span>
+
+          </footer>
+
         </div>
+
       </main>
+
     </div>
   );
 }
