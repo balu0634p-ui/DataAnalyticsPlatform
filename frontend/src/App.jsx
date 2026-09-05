@@ -1,65 +1,35 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
-
+import React, { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 /* =========================================================
-   API
+   PRODUCTION API
 ========================================================= */
 
 const API_URL =
-  "http://127.0.0.1:8000/api/analytics/";
+  "https://data-analytics-platform-backend.onrender.com/api/analytics/";
 
 /* =========================================================
    FORMATTERS
 ========================================================= */
 
-function money(value) {
-  return `₹${Number(value || 0).toLocaleString(
-    "en-IN",
-    {
-      maximumFractionDigits: 0,
-    }
-  )}`;
-}
+const money = (value) =>
+  `₹${Number(value || 0).toLocaleString("en-IN", {
+    maximumFractionDigits: 0,
+  })}`;
 
-function number(value) {
-  return Number(value || 0).toLocaleString(
-    "en-IN",
-    {
-      maximumFractionDigits: 0,
-    }
-  );
-}
+const number = (value) =>
+  Number(value || 0).toLocaleString("en-IN", {
+    maximumFractionDigits: 0,
+  });
 
-function percent(value) {
-  return `${Number(value || 0).toFixed(2)}%`;
-}
+const percent = (value) =>
+  `${Number(value || 0).toFixed(2)}%`;
 
 /* =========================================================
-   SAFE HELPERS
+   SAFE VALUE HELPER
 ========================================================= */
 
-function getValue(
-  obj,
-  keys,
-  fallback = 0
-) {
+function getValue(obj, keys, fallback = 0) {
   for (const key of keys) {
     if (
       obj &&
@@ -74,238 +44,111 @@ function getValue(
   return fallback;
 }
 
-function textValue(
-  obj,
-  keys,
-  fallback = "—"
-) {
-  return String(
-    getValue(obj, keys, fallback)
-  );
-}
-
-function numberValue(
-  obj,
-  keys,
-  fallback = 0
-) {
-  const value = Number(
-    getValue(obj, keys, fallback)
-  );
-
-  return Number.isFinite(value)
-    ? value
-    : fallback;
-}
-
 /* =========================================================
-   NORMALIZERS
+   DATA NORMALIZATION
 ========================================================= */
 
-function normalizeRegion(item) {
-  const revenue = numberValue(
-    item,
-    [
-      "revenue",
-      "sales",
-      "total_revenue",
-    ]
-  );
+function normalizeData(raw) {
+  const data = raw || {};
 
-  const profit = numberValue(
-    item,
-    [
-      "profit",
-      "total_profit",
-    ]
-  );
+  const summary =
+    data.summary ||
+    data.overview ||
+    data.metrics ||
+    data;
 
-  const orders = numberValue(
-    item,
-    [
-      "orders",
-      "total_orders",
-      "order_count",
-    ]
-  );
+  const totalRevenue = getValue(summary, [
+    "total_revenue",
+    "totalRevenue",
+    "revenue",
+    "sales",
+  ]);
 
-  const quantity = numberValue(
-    item,
-    [
-      "quantity",
-      "total_quantity",
-    ]
-  );
+  const totalProfit = getValue(summary, [
+    "total_profit",
+    "totalProfit",
+    "profit",
+  ]);
 
-  let margin = numberValue(
-    item,
-    [
-      "margin",
-      "profit_margin",
-      "profit_margin_percent",
-    ]
-  );
+  const totalOrders = getValue(summary, [
+    "total_orders",
+    "totalOrders",
+    "orders",
+  ]);
 
-  if (
-    margin === 0 &&
-    revenue > 0
-  ) {
-    margin =
-      (profit / revenue) * 100;
-  }
+  const totalQuantity = getValue(summary, [
+    "total_quantity",
+    "totalQuantity",
+    "quantity",
+    "units_sold",
+    "unitsSold",
+  ]);
 
-  return {
-    region: textValue(
-      item,
-      [
-        "region",
-        "name",
-        "region_name",
-      ]
-    ),
-    revenue,
-    profit,
-    orders,
-    quantity,
-    margin,
-  };
-}
+  const averageOrderValue = getValue(summary, [
+    "average_order_value",
+    "averageOrderValue",
+    "avg_order_value",
+    "average_order",
+  ]);
 
-function normalizeCategory(item) {
-  const revenue = numberValue(
-    item,
-    [
-      "revenue",
-      "sales",
-      "total_revenue",
-    ]
-  );
+  const profitMargin = getValue(summary, [
+    "profit_margin",
+    "profitMargin",
+    "margin",
+  ]);
 
-  const profit = numberValue(
-    item,
-    [
-      "profit",
-      "total_profit",
-    ]
-  );
+  const monthly =
+    data.monthly_sales ||
+    data.monthlySales ||
+    data.monthly ||
+    data.sales_by_month ||
+    [];
 
-  const orders = numberValue(
-    item,
-    [
-      "orders",
-      "total_orders",
-      "order_count",
-    ]
-  );
+  const regions =
+    data.regions ||
+    data.region_performance ||
+    data.regionPerformance ||
+    data.sales_by_region ||
+    [];
 
-  const quantity = numberValue(
-    item,
-    [
-      "quantity",
-      "total_quantity",
-    ]
-  );
+  const categories =
+    data.categories ||
+    data.category_performance ||
+    data.categoryPerformance ||
+    data.sales_by_category ||
+    [];
 
-  let margin = numberValue(
-    item,
-    [
-      "margin",
-      "profit_margin",
-      "profit_margin_percent",
-    ]
-  );
-
-  if (
-    margin === 0 &&
-    revenue > 0
-  ) {
-    margin =
-      (profit / revenue) * 100;
-  }
+  const products =
+    data.products ||
+    data.product_performance ||
+    data.productPerformance ||
+    data.top_products ||
+    data.topProducts ||
+    [];
 
   return {
-    category: textValue(
-      item,
-      [
-        "category",
-        "name",
-        "category_name",
-      ]
-    ),
-    revenue,
-    profit,
-    orders,
-    quantity,
-    margin,
-  };
-}
+    totalRevenue,
+    totalProfit,
+    totalOrders,
+    totalQuantity,
+    averageOrderValue,
+    profitMargin,
 
-function normalizeProduct(item) {
-  const revenue = numberValue(
-    item,
-    [
-      "revenue",
-      "sales",
-      "total_revenue",
-    ]
-  );
+    monthly: Array.isArray(monthly)
+      ? monthly
+      : [],
 
-  const profit = numberValue(
-    item,
-    [
-      "profit",
-      "total_profit",
-    ]
-  );
+    regions: Array.isArray(regions)
+      ? regions
+      : [],
 
-  const orders = numberValue(
-    item,
-    [
-      "orders",
-      "total_orders",
-      "order_count",
-    ]
-  );
+    categories: Array.isArray(categories)
+      ? categories
+      : [],
 
-  const quantity = numberValue(
-    item,
-    [
-      "quantity",
-      "total_quantity",
-    ]
-  );
-
-  let margin = numberValue(
-    item,
-    [
-      "margin",
-      "profit_margin",
-      "profit_margin_percent",
-    ]
-  );
-
-  if (
-    margin === 0 &&
-    revenue > 0
-  ) {
-    margin =
-      (profit / revenue) * 100;
-  }
-
-  return {
-    product: textValue(
-      item,
-      [
-        "product",
-        "name",
-        "product_name",
-      ]
-    ),
-    revenue,
-    profit,
-    orders,
-    quantity,
-    margin,
+    products: Array.isArray(products)
+      ? products
+      : [],
   };
 }
 
@@ -314,9 +157,9 @@ function normalizeProduct(item) {
 ========================================================= */
 
 function Sidebar() {
-  function goToSection(id) {
+  function goToSection(sectionId) {
     const element =
-      document.getElementById(id);
+      document.getElementById(sectionId);
 
     if (element) {
       element.scrollIntoView({
@@ -337,7 +180,7 @@ function Sidebar() {
 
         <div>
           <div className="brand-name">
-            Sales Analytics Platform
+            Data Analytics
           </div>
 
           <div className="brand-subtitle">
@@ -442,6 +285,9 @@ function Sidebar() {
       <button
         type="button"
         className="nav-item"
+        onClick={() =>
+          goToSection("dashboard")
+        }
       >
         <span className="nav-icon">
           ⚙
@@ -459,6 +305,7 @@ function Sidebar() {
           <span className="status-dot"></span>
 
           <div>
+
             <strong>
               API Connected
             </strong>
@@ -466,12 +313,13 @@ function Sidebar() {
             <small>
               Django backend online
             </small>
+
           </div>
 
         </div>
 
         <div className="platform-version">
-          SALES ANALYTICS PLATFORM
+          DATA ANALYTICS PLATFORM
           <br />
           v1.0.0
         </div>
@@ -521,58 +369,10 @@ function MetricCard({
 }
 
 /* =========================================================
-   FILTER
-========================================================= */
-
-function Filter({
-  label,
-  value,
-  options,
-  defaultText,
-  onChange,
-}) {
-  return (
-    <div className="field">
-
-      <label>
-        {label}
-      </label>
-
-      <select
-        value={value}
-        onChange={(event) =>
-          onChange(
-            event.target.value
-          )
-        }
-      >
-
-        <option value="All">
-          {defaultText}
-        </option>
-
-        {options.map((item) => (
-          <option
-            value={item}
-            key={item}
-          >
-            {item}
-          </option>
-        ))}
-
-      </select>
-
-    </div>
-  );
-}
-
-/* =========================================================
    REVENUE CHART
 ========================================================= */
 
-function RevenueChart({
-  data,
-}) {
+function RevenueChart({ data }) {
   if (!data.length) {
     return (
       <div className="empty-chart">
@@ -581,107 +381,150 @@ function RevenueChart({
     );
   }
 
+  const values = data.map((item) =>
+    Number(
+      getValue(item, [
+        "revenue",
+        "sales",
+        "total_revenue",
+        "totalRevenue",
+        "value",
+      ])
+    )
+  );
+
+  const max = Math.max(...values, 1);
+
+  const width = 800;
+  const height = 300;
+  const paddingX = 45;
+  const paddingY = 30;
+
+  const chartWidth =
+    width - paddingX * 2;
+
+  const chartHeight =
+    height - paddingY * 2;
+
+  const points = values.map(
+    (value, index) => {
+      const x =
+        data.length === 1
+          ? width / 2
+          : paddingX +
+            (index /
+              (data.length - 1)) *
+              chartWidth;
+
+      const y =
+        paddingY +
+        chartHeight -
+        (value / max) *
+          chartHeight;
+
+      return {
+        x,
+        y,
+        value,
+        ...data[index],
+      };
+    }
+  );
+
+  const linePath = points
+    .map(
+      (point, index) =>
+        `${index === 0 ? "M" : "L"} ${
+          point.x
+        } ${point.y}`
+    )
+    .join(" ");
+
+  const areaPath = `
+    ${linePath}
+    L ${points[points.length - 1].x} ${
+    height - paddingY
+  }
+    L ${points[0].x} ${
+    height - paddingY
+  }
+    Z
+  `;
+
   return (
     <div className="chart-wrapper">
 
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="revenue-svg"
+        preserveAspectRatio="none"
       >
 
-        <AreaChart
-          data={data}
-          margin={{
-            top: 10,
-            right: 10,
-            left: 5,
-            bottom: 10,
-          }}
-        >
+        <line
+          x1={paddingX}
+          y1={height - paddingY}
+          x2={width - paddingX}
+          y2={height - paddingY}
+          stroke="#e5e7eb"
+        />
 
-          <defs>
+        <line
+          x1={paddingX}
+          y1={paddingY}
+          x2={paddingX}
+          y2={height - paddingY}
+          stroke="#e5e7eb"
+        />
 
-            <linearGradient
-              id="revenueGradient"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
+        <path
+          d={areaPath}
+          fill="rgba(40,100,232,0.08)"
+          stroke="none"
+        />
 
-              <stop
-                offset="0%"
-                stopColor="#2864e8"
-                stopOpacity={0.25}
+        <path
+          d={linePath}
+          fill="none"
+          stroke="#2864e8"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {points.map(
+          (point, index) => (
+            <g key={index}>
+
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="5"
+                fill="#2864e8"
+                stroke="white"
+                strokeWidth="3"
               />
 
-              <stop
-                offset="100%"
-                stopColor="#2864e8"
-                stopOpacity={0.02}
-              />
+              <text
+                x={point.x}
+                y={height - 12}
+                textAnchor="middle"
+                fontSize="12"
+                fill="#667085"
+              >
+                {String(
+                  getValue(point, [
+                    "month",
+                    "period",
+                    "date",
+                  ])
+                )}
+              </text>
 
-            </linearGradient>
+            </g>
+          )
+        )}
 
-          </defs>
-
-          <CartesianGrid
-            stroke="#e9edf3"
-            strokeDasharray="3 3"
-          />
-
-          <XAxis
-            dataKey="month"
-            tick={{
-              fontSize: 10,
-              fill: "#7b879c",
-            }}
-            axisLine={false}
-            tickLine={false}
-          />
-
-          <YAxis
-            tick={{
-              fontSize: 10,
-              fill: "#7b879c",
-            }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(value) =>
-              value >= 100000
-                ? `₹${Math.round(
-                    value / 1000
-                  )}K`
-                : `₹${value}`
-            }
-          />
-
-          <Tooltip
-            formatter={(value) => [
-              money(value),
-              "Revenue",
-            ]}
-          />
-
-          <Area
-            type="monotone"
-            dataKey="revenue"
-            stroke="#2864e8"
-            strokeWidth={3}
-            fill="url(#revenueGradient)"
-            dot={{
-              r: 4,
-              strokeWidth: 2,
-              fill: "#ffffff",
-            }}
-            activeDot={{
-              r: 6,
-            }}
-          />
-
-        </AreaChart>
-
-      </ResponsiveContainer>
+      </svg>
 
     </div>
   );
@@ -691,101 +534,84 @@ function RevenueChart({
    REGION CHART
 ========================================================= */
 
-function RegionChart({
-  data,
-}) {
+function RegionChart({ data }) {
   if (!data.length) {
     return (
-      <div className="empty-chart small">
+      <div className="empty-chart">
         No regional data available
       </div>
     );
   }
 
-  const prepared = data.map(
-    (item) => ({
-      region: item.region,
-      revenue: item.revenue,
-    })
+  const values = data.map((item) =>
+    Number(
+      getValue(item, [
+        "revenue",
+        "sales",
+        "total_revenue",
+      ])
+    )
   );
 
+  const max = Math.max(...values, 1);
+
   return (
-    <div className="chart-wrapper">
+    <div className="region-bars">
 
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-      >
+      {data.map(
+        (item, index) => {
 
-        <BarChart
-          data={prepared}
-          layout="vertical"
-          margin={{
-            top: 10,
-            right: 20,
-            left: 10,
-            bottom: 10,
-          }}
-        >
+          const name = String(
+            getValue(item, [
+              "region",
+              "name",
+              "region_name",
+            ], "Region")
+          );
 
-          <CartesianGrid
-            stroke="#e9edf3"
-            strokeDasharray="3 3"
-            horizontal={false}
-          />
+          const revenue = Number(
+            getValue(item, [
+              "revenue",
+              "sales",
+              "total_revenue",
+            ])
+          );
 
-          <XAxis
-            type="number"
-            tick={{
-              fontSize: 9,
-              fill: "#7b879c",
-            }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(value) =>
-              value >= 100000
-                ? `₹${Math.round(
-                    value / 100000
-                  )}L`
-                : `₹${value}`
-            }
-          />
+          return (
+            <div
+              className="region-bar-row"
+              key={index}
+            >
 
-          <YAxis
-            type="category"
-            dataKey="region"
-            width={65}
-            tick={{
-              fontSize: 10,
-              fill: "#475467",
-              fontWeight: 600,
-            }}
-            axisLine={false}
-            tickLine={false}
-          />
+              <div className="bar-label">
+                {name}
+              </div>
 
-          <Tooltip
-            formatter={(value) => [
-              money(value),
-              "Revenue",
-            ]}
-          />
+              <div className="bar-track">
 
-          <Bar
-            dataKey="revenue"
-            fill="#2864e8"
-            radius={[
-              0,
-              5,
-              5,
-              0,
-            ]}
-            barSize={24}
-          />
+                <div
+                  className="bar-fill"
+                  style={{
+                    width: `${
+                      Math.max(
+                        3,
+                        (revenue / max) *
+                          100
+                      )
+                    }%`,
+                  }}
+                />
 
-        </BarChart>
+              </div>
 
-      </ResponsiveContainer>
+              <div className="bar-value">
+                {money(revenue)}
+              </div>
+
+            </div>
+          );
+        }
+      )}
 
     </div>
   );
@@ -795,9 +621,7 @@ function RegionChart({
    REGIONAL TABLE
 ========================================================= */
 
-function RegionalTable({
-  data,
-}) {
+function RegionalTable({ data }) {
   if (!data.length) {
     return (
       <div className="table-empty">
@@ -812,83 +636,111 @@ function RegionalTable({
       <table>
 
         <thead>
-
           <tr>
-
             <th>REGION</th>
             <th>REVENUE</th>
             <th>PROFIT</th>
             <th>ORDERS</th>
             <th>QUANTITY</th>
             <th>MARGIN</th>
-
           </tr>
-
         </thead>
 
         <tbody>
 
-          {data.map((item) => (
+          {data.map(
+            (item, index) => {
 
-            <tr
-              key={item.region}
-            >
+              const region =
+                String(
+                  getValue(
+                    item,
+                    [
+                      "region",
+                      "name",
+                      "region_name",
+                    ],
+                    `Region ${index + 1}`
+                  )
+                );
 
-              <td>
+              return (
+                <tr
+                  key={region}
+                >
 
-                <div className="name-cell">
+                  <td>
 
-                  <span className="avatar-small">
-                    {String(
-                      item.region
-                    ).charAt(0)}
-                  </span>
+                    <div className="name-cell">
 
-                  <strong>
-                    {item.region}
-                  </strong>
+                      <span className="avatar-small">
+                        {region
+                          .charAt(0)
+                          .toUpperCase()}
+                      </span>
 
-                </div>
+                      <strong>
+                        {region}
+                      </strong>
 
-              </td>
+                    </div>
 
-              <td>
-                {money(
-                  item.revenue
-                )}
-              </td>
+                  </td>
 
-              <td className="profit-text">
-                {money(
-                  item.profit
-                )}
-              </td>
+                  <td>
+                    {money(
+                      getValue(item, [
+                        "revenue",
+                        "sales",
+                        "total_revenue",
+                      ])
+                    )}
+                  </td>
 
-              <td>
-                {number(
-                  item.orders
-                )}
-              </td>
+                  <td className="profit-text">
+                    {money(
+                      getValue(item, [
+                        "profit",
+                        "total_profit",
+                      ])
+                    )}
+                  </td>
 
-              <td>
-                {number(
-                  item.quantity
-                )}
-              </td>
+                  <td>
+                    {number(
+                      getValue(item, [
+                        "orders",
+                        "total_orders",
+                      ])
+                    )}
+                  </td>
 
-              <td>
+                  <td>
+                    {number(
+                      getValue(item, [
+                        "quantity",
+                        "total_quantity",
+                      ])
+                    )}
+                  </td>
 
-                <span className="margin-badge">
-                  {percent(
-                    item.margin
-                  )}
-                </span>
+                  <td>
 
-              </td>
+                    <span className="margin-badge">
+                      {percent(
+                        getValue(item, [
+                          "margin",
+                          "profit_margin",
+                        ])
+                      )}
+                    </span>
 
-            </tr>
+                  </td>
 
-          ))}
+                </tr>
+              );
+            }
+          )}
 
         </tbody>
 
@@ -902,9 +754,7 @@ function RegionalTable({
    CATEGORY TABLE
 ========================================================= */
 
-function CategoryTable({
-  data,
-}) {
+function CategoryTable({ data }) {
   if (!data.length) {
     return (
       <div className="table-empty">
@@ -919,83 +769,111 @@ function CategoryTable({
       <table>
 
         <thead>
-
           <tr>
-
             <th>CATEGORY</th>
             <th>REVENUE</th>
             <th>PROFIT</th>
             <th>ORDERS</th>
             <th>QUANTITY</th>
             <th>MARGIN</th>
-
           </tr>
-
         </thead>
 
         <tbody>
 
-          {data.map((item) => (
+          {data.map(
+            (item, index) => {
 
-            <tr
-              key={item.category}
-            >
+              const category =
+                String(
+                  getValue(
+                    item,
+                    [
+                      "category",
+                      "name",
+                      "category_name",
+                    ],
+                    `Category ${index + 1}`
+                  )
+                );
 
-              <td>
+              return (
+                <tr
+                  key={category}
+                >
 
-                <div className="name-cell">
+                  <td>
 
-                  <span className="avatar-small">
-                    {String(
-                      item.category
-                    ).charAt(0)}
-                  </span>
+                    <div className="name-cell">
 
-                  <strong>
-                    {item.category}
-                  </strong>
+                      <span className="avatar-small">
+                        {category
+                          .charAt(0)
+                          .toUpperCase()}
+                      </span>
 
-                </div>
+                      <strong>
+                        {category}
+                      </strong>
 
-              </td>
+                    </div>
 
-              <td>
-                {money(
-                  item.revenue
-                )}
-              </td>
+                  </td>
 
-              <td className="profit-text">
-                {money(
-                  item.profit
-                )}
-              </td>
+                  <td>
+                    {money(
+                      getValue(item, [
+                        "revenue",
+                        "sales",
+                        "total_revenue",
+                      ])
+                    )}
+                  </td>
 
-              <td>
-                {number(
-                  item.orders
-                )}
-              </td>
+                  <td className="profit-text">
+                    {money(
+                      getValue(item, [
+                        "profit",
+                        "total_profit",
+                      ])
+                    )}
+                  </td>
 
-              <td>
-                {number(
-                  item.quantity
-                )}
-              </td>
+                  <td>
+                    {number(
+                      getValue(item, [
+                        "orders",
+                        "total_orders",
+                      ])
+                    )}
+                  </td>
 
-              <td>
+                  <td>
+                    {number(
+                      getValue(item, [
+                        "quantity",
+                        "total_quantity",
+                      ])
+                    )}
+                  </td>
 
-                <span className="margin-badge">
-                  {percent(
-                    item.margin
-                  )}
-                </span>
+                  <td>
 
-              </td>
+                    <span className="margin-badge">
+                      {percent(
+                        getValue(item, [
+                          "margin",
+                          "profit_margin",
+                        ])
+                      )}
+                    </span>
 
-            </tr>
+                  </td>
 
-          ))}
+                </tr>
+              );
+            }
+          )}
 
         </tbody>
 
@@ -1009,9 +887,7 @@ function CategoryTable({
    TOP PRODUCTS
 ========================================================= */
 
-function TopProducts({
-  data,
-}) {
+function TopProducts({ data }) {
   if (!data.length) {
     return (
       <div className="table-empty">
@@ -1020,9 +896,38 @@ function TopProducts({
     );
   }
 
+  const prepared =
+    data
+      .map((item) => ({
+        product: String(
+          getValue(
+            item,
+            [
+              "product",
+              "name",
+              "product_name",
+            ],
+            "Product"
+          )
+        ),
+
+        revenue: Number(
+          getValue(item, [
+            "revenue",
+            "sales",
+            "total_revenue",
+          ])
+        ),
+      }))
+      .sort(
+        (a, b) =>
+          b.revenue - a.revenue
+      )
+      .slice(0, 5);
+
   const maxRevenue =
     Math.max(
-      ...data.map(
+      ...prepared.map(
         (item) => item.revenue
       ),
       1
@@ -1031,63 +936,55 @@ function TopProducts({
   return (
     <div className="products-list">
 
-      {data
-        .slice(0, 5)
-        .map(
-          (item, index) => (
+      {prepared.map(
+        (item, index) => (
 
-            <div
-              className="product-row"
-              key={item.product}
-            >
+          <div
+            className="product-row"
+            key={item.product}
+          >
 
-              <div className="product-top">
+            <div className="product-top">
 
-                <div className="product-name">
+              <div className="product-name">
 
-                  <span className="product-rank">
-                    {String(
-                      index + 1
-                    ).padStart(
-                      2,
-                      "0"
-                    )}
-                  </span>
-
-                  <strong>
-                    {item.product}
-                  </strong>
-
-                </div>
-
-                <span className="product-value">
-                  {money(
-                    item.revenue
-                  )}
+                <span className="product-rank">
+                  {String(
+                    index + 1
+                  ).padStart(2, "0")}
                 </span>
 
-              </div>
-
-              <div className="product-bar">
-
-                <div
-                  className="product-bar-fill"
-                  style={{
-                    width: `${
-                      (
-                        item.revenue /
-                        maxRevenue
-                      ) * 100
-                    }%`,
-                  }}
-                />
+                <strong>
+                  {item.product}
+                </strong>
 
               </div>
+
+              <span className="product-value">
+                {money(item.revenue)}
+              </span>
 
             </div>
 
-          )
-        )}
+            <div className="product-bar">
+
+              <div
+                className="product-bar-fill"
+                style={{
+                  width: `${
+                    (item.revenue /
+                      maxRevenue) *
+                    100
+                  }%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        )
+      )}
 
     </div>
   );
@@ -1141,6 +1038,8 @@ export default function App() {
       setLoading(true);
       setError("");
 
+      /* DATE VALIDATION */
+
       if (
         currentFilters.start_date &&
         currentFilters.end_date &&
@@ -1152,6 +1051,8 @@ export default function App() {
         );
       }
 
+      /* BUILD QUERY */
+
       const params =
         new URLSearchParams();
 
@@ -1160,12 +1061,10 @@ export default function App() {
         currentFilters.region !==
           "All"
       ) {
-
         params.append(
           "region",
           currentFilters.region
         );
-
       }
 
       if (
@@ -1173,12 +1072,10 @@ export default function App() {
         currentFilters.category !==
           "All"
       ) {
-
         params.append(
           "category",
           currentFilters.category
         );
-
       }
 
       if (
@@ -1186,57 +1083,52 @@ export default function App() {
         currentFilters.product !==
           "All"
       ) {
-
         params.append(
           "product",
           currentFilters.product
         );
-
       }
 
       if (
         currentFilters.start_date
       ) {
-
         params.append(
           "start_date",
           currentFilters.start_date
         );
-
       }
 
       if (
         currentFilters.end_date
       ) {
-
         params.append(
           "end_date",
           currentFilters.end_date
         );
-
       }
 
       const query =
         params.toString();
 
-      const url = query
-        ? `${API_URL}?${query}`
-        : API_URL;
+      const url =
+        query
+          ? `${API_URL}?${query}`
+          : API_URL;
 
       console.log(
         "Analytics request:",
         url
       );
 
+      /* API REQUEST */
+
       const response =
         await fetch(url);
 
       if (!response.ok) {
-
         throw new Error(
           `API Error: ${response.status}`
         );
-
       }
 
       const result =
@@ -1248,15 +1140,12 @@ export default function App() {
       );
 
       if (
-        result.status ===
-        "error"
+        result.status === "error"
       ) {
-
         throw new Error(
           result.message ||
             "Analytics request failed."
         );
-
       }
 
       setData(result);
@@ -1273,7 +1162,6 @@ export default function App() {
     } finally {
 
       setLoading(false);
-
     }
   }
 
@@ -1289,9 +1177,7 @@ export default function App() {
      FILTER CHANGE
   ======================================================= */
 
-  function handleFilterChange(
-    event
-  ) {
+  function handleFilterChange(event) {
 
     const {
       name,
@@ -1342,7 +1228,7 @@ export default function App() {
   }
 
   /* =======================================================
-     RESET
+     RESET FILTERS
   ======================================================= */
 
   function resetFilters() {
@@ -1363,8 +1249,11 @@ export default function App() {
   }
 
   /* =======================================================
-     NORMALIZED DATA
+     DATA
   ======================================================= */
+
+  const kpis =
+    data?.kpis || {};
 
   const regions =
     useMemo(
@@ -1372,7 +1261,51 @@ export default function App() {
         (
           data?.region_performance ||
           []
-        ).map(normalizeRegion),
+        ).map((item) => ({
+          region: String(
+            getValue(item, [
+              "region",
+              "name",
+              "region_name",
+            ])
+          ),
+
+          revenue: Number(
+            getValue(item, [
+              "revenue",
+              "sales",
+              "total_revenue",
+            ])
+          ),
+
+          profit: Number(
+            getValue(item, [
+              "profit",
+              "total_profit",
+            ])
+          ),
+
+          orders: Number(
+            getValue(item, [
+              "orders",
+              "total_orders",
+            ])
+          ),
+
+          quantity: Number(
+            getValue(item, [
+              "quantity",
+              "total_quantity",
+            ])
+          ),
+
+          margin: Number(
+            getValue(item, [
+              "margin",
+              "profit_margin",
+            ])
+          ),
+        })),
       [data]
     );
 
@@ -1382,7 +1315,51 @@ export default function App() {
         (
           data?.category_performance ||
           []
-        ).map(normalizeCategory),
+        ).map((item) => ({
+          category: String(
+            getValue(item, [
+              "category",
+              "name",
+              "category_name",
+            ])
+          ),
+
+          revenue: Number(
+            getValue(item, [
+              "revenue",
+              "sales",
+              "total_revenue",
+            ])
+          ),
+
+          profit: Number(
+            getValue(item, [
+              "profit",
+              "total_profit",
+            ])
+          ),
+
+          orders: Number(
+            getValue(item, [
+              "orders",
+              "total_orders",
+            ])
+          ),
+
+          quantity: Number(
+            getValue(item, [
+              "quantity",
+              "total_quantity",
+            ])
+          ),
+
+          margin: Number(
+            getValue(item, [
+              "margin",
+              "profit_margin",
+            ])
+          ),
+        })),
       [data]
     );
 
@@ -1392,7 +1369,51 @@ export default function App() {
         (
           data?.product_performance ||
           []
-        ).map(normalizeProduct),
+        ).map((item) => ({
+          product: String(
+            getValue(item, [
+              "product",
+              "name",
+              "product_name",
+            ])
+          ),
+
+          revenue: Number(
+            getValue(item, [
+              "revenue",
+              "sales",
+              "total_revenue",
+            ])
+          ),
+
+          profit: Number(
+            getValue(item, [
+              "profit",
+              "total_profit",
+            ])
+          ),
+
+          orders: Number(
+            getValue(item, [
+              "orders",
+              "total_orders",
+            ])
+          ),
+
+          quantity: Number(
+            getValue(item, [
+              "quantity",
+              "total_quantity",
+            ])
+          ),
+
+          margin: Number(
+            getValue(item, [
+              "margin",
+              "profit_margin",
+            ])
+          ),
+        })),
       [data]
     );
 
@@ -1403,94 +1424,24 @@ export default function App() {
           data?.monthly_sales ||
           []
         ).map((item) => ({
-          month: textValue(
-            item,
-            [
+          month: String(
+            getValue(item, [
               "month",
               "period",
               "date",
-              "name",
-            ],
-            "—"
+            ])
           ),
 
-          revenue: numberValue(
-            item,
-            [
+          revenue: Number(
+            getValue(item, [
               "sales",
               "revenue",
               "total_revenue",
-              "value",
-            ]
+            ])
           ),
         })),
       [data]
     );
-
-  const topProducts =
-    useMemo(
-      () =>
-        [...products]
-          .sort(
-            (a, b) =>
-              b.revenue -
-              a.revenue
-          )
-          .slice(0, 5),
-      [products]
-    );
-
-  const kpis =
-    data?.kpis || {};
-
-  const activeFilterCount =
-    (appliedFilters.region !==
-    "All"
-      ? 1
-      : 0) +
-    (appliedFilters.category !==
-    "All"
-      ? 1
-      : 0) +
-    (appliedFilters.product !==
-    "All"
-      ? 1
-      : 0) +
-    (appliedFilters.start_date
-      ? 1
-      : 0) +
-    (appliedFilters.end_date
-      ? 1
-      : 0);
-
-  /* =======================================================
-     AVAILABLE FILTER OPTIONS
-  ======================================================= */
-
-  const availableRegions =
-    data?.available_filters
-      ?.regions ||
-    regions.map(
-      (item) => item.region
-    );
-
-  const availableCategories =
-    data?.available_filters
-      ?.categories ||
-    categories.map(
-      (item) => item.category
-    );
-
-  const availableProducts =
-    data?.available_filters
-      ?.products ||
-    products.map(
-      (item) => item.product
-    );
-
-  /* =======================================================
-     BEST MONTH
-  ======================================================= */
 
   const bestMonth =
     useMemo(() => {
@@ -1499,14 +1450,19 @@ export default function App() {
         return null;
       }
 
-      return [...monthlySales]
-        .sort(
-          (a, b) =>
-            b.revenue -
-            a.revenue
-        )[0];
+      return [...monthlySales].sort(
+        (a, b) =>
+          b.revenue - a.revenue
+      )[0];
 
     }, [monthlySales]);
+
+  /* =======================================================
+     INSIGHTS
+  ======================================================= */
+
+  const businessInsights =
+    data?.business_insights || [];
 
   /* =======================================================
      EXPORT REPORT
@@ -1514,19 +1470,13 @@ export default function App() {
 
   function exportReport() {
 
-    if (!data) {
-      return;
-    }
+    if (!data) return;
 
     const rows = [
 
-      [
-        "SALES ANALYTICS PLATFORM",
-      ],
+      ["DATA ANALYTICS PLATFORM"],
 
-      [
-        "Sales Performance Report",
-      ],
+      ["Sales Performance Report"],
 
       [],
 
@@ -1561,9 +1511,7 @@ export default function App() {
 
       [],
 
-      [
-        "KEY PERFORMANCE INDICATORS",
-      ],
+      ["KEY PERFORMANCE INDICATORS"],
 
       [
         "Total Revenue",
@@ -1597,9 +1545,7 @@ export default function App() {
 
       [],
 
-      [
-        "REGIONAL PERFORMANCE",
-      ],
+      ["REGIONAL PERFORMANCE"],
 
       [
         "Region",
@@ -1714,14 +1660,10 @@ export default function App() {
       );
 
     const url =
-      URL.createObjectURL(
-        blob
-      );
+      URL.createObjectURL(blob);
 
     const link =
-      document.createElement(
-        "a"
-      );
+      document.createElement("a");
 
     link.href = url;
 
@@ -1732,19 +1674,13 @@ export default function App() {
           .split("T")[0]
       }.csv`;
 
-    document.body.appendChild(
-      link
-    );
+    document.body.appendChild(link);
 
     link.click();
 
-    document.body.removeChild(
-      link
-    );
+    document.body.removeChild(link);
 
-    URL.revokeObjectURL(
-      url
-    );
+    URL.revokeObjectURL(url);
   }
 
   /* =======================================================
@@ -1771,23 +1707,27 @@ export default function App() {
 
               Workspace
 
-              <span>/</span>
+              <span>
+                /
+              </span>
 
               Analytics
 
-              <span>/</span>
+              <span>
+                /
+              </span>
 
               Dashboard
 
             </div>
 
-            <div className="top-actions">
+            <div className="topbar-actions">
 
-              <div className="live-pill">
+              <div className="live-badge">
 
                 <span></span>
 
-                Live
+                API Connected
 
               </div>
 
@@ -1800,11 +1740,11 @@ export default function App() {
           </header>
 
           {/* =================================================
-              PAGE HEADER
+              HERO
           ================================================= */}
 
           <section
-            className="page-heading"
+            className="hero"
             id="dashboard"
           >
 
@@ -1829,21 +1769,23 @@ export default function App() {
 
             <div className="report-period">
 
-              <small>
+              <div className="report-label">
                 REPORT PERIOD
-              </small>
+              </div>
 
-              <strong>
+              <div className="report-date">
 
                 {appliedFilters.start_date ||
                   "All"}
 
-                {" → "}
+                <span>
+                  →
+                </span>
 
                 {appliedFilters.end_date ||
                   "All"}
 
-              </strong>
+              </div>
 
             </div>
 
@@ -1864,20 +1806,25 @@ export default function App() {
                 </h2>
 
                 <p>
-                  Refine the dashboard
-                  using business
-                  dimensions.
+                  Refine the dashboard using
+                  business dimensions.
                 </p>
 
               </div>
 
-              <span>
-                {activeFilterCount} active
-              </span>
+              <button
+                className="small-outline-button"
+                onClick={resetFilters}
+              >
+                All data
+              </button>
 
             </div>
 
-            <div className="filter-grid">
+            <form
+              onSubmit={applyFilters}
+              className="filter-grid"
+            >
 
               <div className="field">
 
@@ -1887,9 +1834,7 @@ export default function App() {
 
                 <select
                   name="region"
-                  value={
-                    filters.region
-                  }
+                  value={filters.region}
                   onChange={
                     handleFilterChange
                   }
@@ -1899,13 +1844,13 @@ export default function App() {
                     All Regions
                   </option>
 
-                  {availableRegions.map(
+                  {regions.map(
                     (item) => (
                       <option
-                        key={item}
-                        value={item}
+                        key={item.region}
+                        value={item.region}
                       >
-                        {item}
+                        {item.region}
                       </option>
                     )
                   )}
@@ -1922,9 +1867,7 @@ export default function App() {
 
                 <select
                   name="category"
-                  value={
-                    filters.category
-                  }
+                  value={filters.category}
                   onChange={
                     handleFilterChange
                   }
@@ -1934,13 +1877,13 @@ export default function App() {
                     All Categories
                   </option>
 
-                  {availableCategories.map(
+                  {categories.map(
                     (item) => (
                       <option
-                        key={item}
-                        value={item}
+                        key={item.category}
+                        value={item.category}
                       >
-                        {item}
+                        {item.category}
                       </option>
                     )
                   )}
@@ -1957,9 +1900,7 @@ export default function App() {
 
                 <select
                   name="product"
-                  value={
-                    filters.product
-                  }
+                  value={filters.product}
                   onChange={
                     handleFilterChange
                   }
@@ -1969,13 +1910,13 @@ export default function App() {
                     All Products
                   </option>
 
-                  {availableProducts.map(
+                  {products.map(
                     (item) => (
                       <option
-                        key={item}
-                        value={item}
+                        key={item.product}
+                        value={item.product}
                       >
-                        {item}
+                        {item.product}
                       </option>
                     )
                   )}
@@ -2025,34 +1966,29 @@ export default function App() {
               <div className="filter-buttons">
 
                 <button
+                  type="button"
                   className="reset-button"
-                  onClick={
-                    resetFilters
-                  }
+                  onClick={resetFilters}
                 >
                   Reset
                 </button>
 
                 <button
+                  type="submit"
                   className="apply-button"
-                  onClick={
-                    applyFilters
-                  }
                 >
                   Apply Filters
                 </button>
 
               </div>
 
-            </div>
+            </form>
 
             <div className="active-filter-line">
 
               <strong>
                 ACTIVE:
               </strong>
-
-              {" "}
 
               Region:{" "}
               {appliedFilters.region}
@@ -2081,9 +2017,7 @@ export default function App() {
 
               <strong>
                 API Error:
-              </strong>
-
-              {" "}
+              </strong>{" "}
 
               {error}
 
@@ -2104,7 +2038,7 @@ export default function App() {
           )}
 
           {/* =================================================
-              DASHBOARD CONTENT
+              DASHBOARD
           ================================================= */}
 
           {!loading && data && (
@@ -2112,10 +2046,12 @@ export default function App() {
             <>
 
               {/* =================================================
-                  EXECUTIVE OVERVIEW
+                  KPI
               ================================================= */}
 
-              <section>
+              <section
+                className="kpi-section"
+              >
 
                 <div className="section-heading centered">
 
@@ -2124,13 +2060,12 @@ export default function App() {
                   </h2>
 
                   <p>
-                    Key performance
-                    indicators
+                    Key performance indicators
                   </p>
 
                 </div>
 
-                <div className="metrics-grid">
+                <div className="kpi-grid">
 
                   <MetricCard
                     icon="₹"
@@ -2216,8 +2151,7 @@ export default function App() {
                       </h2>
 
                       <p>
-                        Monthly revenue
-                        performance
+                        Monthly revenue performance
                       </p>
 
                     </div>
@@ -2253,8 +2187,7 @@ export default function App() {
                       </h2>
 
                       <p>
-                        Regional sales
-                        contribution
+                        Regional sales contribution
                       </p>
 
                     </div>
@@ -2274,15 +2207,15 @@ export default function App() {
               </section>
 
               {/* =================================================
-                  REGIONS + PRODUCTS
+                  REGIONS
               ================================================= */}
 
-              <section className="content-grid">
+              <section
+                className="three-column-grid"
+                id="regions"
+              >
 
-                <div
-                  className="card"
-                  id="regions"
-                >
+                <div className="card table-card">
 
                   <div className="card-heading">
 
@@ -2293,16 +2226,14 @@ export default function App() {
                       </h2>
 
                       <p>
-                        Revenue, profit and
-                        operational metrics
+                        Revenue and profitability
+                        by region
                       </p>
 
                     </div>
 
                     <span className="count-badge">
-                      {regions.length}
-                      {" "}
-                      regions
+                      {regions.length} regions
                     </span>
 
                   </div>
@@ -2313,8 +2244,12 @@ export default function App() {
 
                 </div>
 
+                {/* =================================================
+                    PRODUCTS
+                ================================================= */}
+
                 <div
-                  className="card"
+                  className="card table-card"
                   id="products"
                 >
 
@@ -2333,54 +2268,46 @@ export default function App() {
 
                     </div>
 
-                    <span className="count-badge">
-                      {products.length}
-                      {" "}
-                      products
-                    </span>
-
                   </div>
 
                   <TopProducts
-                    data={topProducts}
+                    data={products}
                   />
 
                 </div>
 
-              </section>
+                {/* =================================================
+                    CATEGORY
+                ================================================= */}
 
-              {/* =================================================
-                  CATEGORY
-              ================================================= */}
+                <div className="card table-card">
 
-              <section className="card">
+                  <div className="card-heading">
 
-                <div className="card-heading">
+                    <div>
 
-                  <div>
+                      <h2>
+                        Category Performance
+                      </h2>
 
-                    <h2>
-                      Category Performance
-                    </h2>
+                      <p>
+                        Business performance
+                        across categories
+                      </p>
 
-                    <p>
-                      Business performance
-                      across categories
-                    </p>
+                    </div>
+
+                    <span className="count-badge">
+                      {categories.length} categories
+                    </span>
 
                   </div>
 
-                  <span className="count-badge">
-                    {categories.length}
-                    {" "}
-                    categories
-                  </span>
+                  <CategoryTable
+                    data={categories}
+                  />
 
                 </div>
-
-                <CategoryTable
-                  data={categories}
-                />
 
               </section>
 
@@ -2404,31 +2331,20 @@ export default function App() {
                       </h2>
 
                       <p>
-                        Key observations
-                        from current
-                        analysis
+                        Key observations from
+                        current analytics
                       </p>
 
                     </div>
-
-                    <button
-                      className="plus-button"
-                      type="button"
-                    >
-                      +
-                    </button>
 
                   </div>
 
                   <div className="insights-list">
 
-                    {Array.isArray(
-                      data.business_insights
-                    ) &&
-                    data.business_insights
-                      .length > 0 ? (
+                    {businessInsights.length >
+                    0 ? (
 
-                      data.business_insights.map(
+                      businessInsights.map(
                         (
                           insight,
                           index
@@ -2452,39 +2368,6 @@ export default function App() {
                         )
                       )
 
-                    ) : regions.length >
-                      0 ? (
-
-                      <div className="insight">
-
-                        <span className="check">
-                          ✓
-                        </span>
-
-                        <span>
-
-                          {
-                            [...regions]
-                              .sort(
-                                (
-                                  a,
-                                  b
-                                ) =>
-                                  b.revenue -
-                                  a.revenue
-                              )[0]
-                              .region
-                          }
-
-                          {" "}
-                          is the
-                          highest-performing
-                          region.
-
-                        </span>
-
-                      </div>
-
                     ) : (
 
                       <div className="empty-insight">
@@ -2504,13 +2387,11 @@ export default function App() {
                     <div>
 
                       <h2>
-                        Best Performing
-                        Month
+                        Best Performing Month
                       </h2>
 
                       <p>
-                        Highest revenue
-                        month
+                        Highest revenue month
                       </p>
 
                     </div>
@@ -2548,8 +2429,7 @@ export default function App() {
                   ) : (
 
                     <div className="table-empty">
-                      No monthly data
-                      available
+                      No monthly data available
                     </div>
 
                   )}
@@ -2569,7 +2449,7 @@ export default function App() {
           <footer className="footer">
 
             <span>
-              Sales Analytics Platform
+              Data Analytics Platform
             </span>
 
             <span>
