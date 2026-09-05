@@ -29,7 +29,11 @@ SECRET_KEY = "django-insecure-8l_g9-q=9)d=u+@)vg-d9%er6beou&z&#rrxu3ah*m$=j5--rt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "data-analytics-platform-backend.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
