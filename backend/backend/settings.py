@@ -11,29 +11,34 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
-
 import sys
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR.parent))
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Allow imports from the project root
+sys.path.append(str(BASE_DIR.parent))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-8l_g9-q=9)d=u+@)vg-d9%er6beou&z&#rrxu3ah*m$=j5--rt"
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
+# Hosts allowed to access Django
 ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
     "data-analytics-platform-backend.onrender.com",
 ]
-
-CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -45,10 +50,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "rest_framework",
     "corsheaders",
+
     "analytics",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -63,7 +71,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 ROOT_URLCONF = "backend.urls"
+
 
 TEMPLATES = [
     {
@@ -79,6 +89,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
@@ -125,7 +136,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = "static/"
@@ -140,7 +151,9 @@ MAILERS = {
     },
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+
+# CORS
+# Allow the Vercel frontend and local frontend to communicate
+# with the Django API.
+
+CORS_ALLOW_ALL_ORIGINS = True
