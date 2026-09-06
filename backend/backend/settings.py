@@ -31,9 +31,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "data-analytics-platform-backend.onrender.com",
-    "localhost",
-    "127.0.0.1",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
