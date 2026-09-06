@@ -7,7 +7,6 @@ import "./App.css";
 
 const API_URL =
   "https://data-analytics-platform-backend.onrender.com/api/analytics/";
-
 /* =========================================================
    FORMATTERS
 ========================================================= */
